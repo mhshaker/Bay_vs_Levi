@@ -1,1 +1,1 @@
-# Bay_vs_Levi
+# Ensemble-based Uncertainty Quantification: Bayesian versus Credal Inference
