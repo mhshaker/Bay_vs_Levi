@@ -168,12 +168,15 @@ def uncertainty_set14(probs, bootstrap_size=0, sampling_size=0, credal_size=0, l
 		p = p.transpose([1,0,2])
 	else:
 		p = probs
-
+		
 	if log:
 		print("------------------------------------set14 prob after averaging each ensemble")
 		print("Set14 p \n" , p)
 		print(p.shape)
-	entropy = -p*np.log2(p)
+	# entropy = -p*np.log2(p)
+	entropy = -p*np.ma.log2(p)
+	entropy = entropy.filled(0)
+
 	entropy_sum = np.sum(entropy, axis=2)
 	s_max = np.max(entropy_sum, axis=1)
 	s_min = np.min(entropy_sum, axis=1)
@@ -207,7 +210,8 @@ def uncertainty_set15(probs, bootstrap_size=0, sampling_size=0, credal_size=0):
 	else:
 		p = probs
 
-	entropy = -p*np.log2(p)
+	entropy = -p*np.ma.log2(p)
+	entropy = entropy.filled(0)
 	entropy_sum = np.sum(entropy, axis=2)
 	s_min = np.min(entropy_sum, axis=1)
 	s_max = np.max(entropy_sum, axis=1)
@@ -215,6 +219,89 @@ def uncertainty_set15(probs, bootstrap_size=0, sampling_size=0, credal_size=0):
 	e = s_max - s_min
 	a = total - e
 	return total, e, a 
+
+def uncertainty_set16(probs, bootstrap_size=0, sampling_size=0, credal_size=0, log=False):
+	if bootstrap_size > 0:
+		p = [] #np.array(probs)
+		for data_point in probs:
+			d_p = []
+			for sampling_seed in range(bootstrap_size):
+				d_p.append(resample(data_point, random_state=sampling_seed))
+			p.append(np.array(d_p))
+		p = np.array(p)
+		p = np.mean(p, axis=2)
+	if sampling_size > 0:
+		p = [] 
+		for sample_index in range(sampling_size):
+			# number_of_samples = int(probs.shape[1] / sampling_size)
+			sampled_index = np.random.choice(probs.shape[1], credal_size)
+			p.append(probs[:,sampled_index,:])
+		p = np.array(p)
+		p = np.mean(p, axis=2)
+		p = p.transpose([1,0,2])
+	else:
+		p = probs
+		
+	if log:
+		print("------------------------------------set14 prob after averaging each ensemble")
+		print("Set14 p \n" , p)
+		print(p.shape)
+	# entropy = -p*np.log2(p)
+	entropy = -p*np.ma.log2(p)
+	entropy = entropy.filled(0)
+
+	entropy_sum = np.sum(entropy, axis=2)
+	s_min = np.min(entropy_sum, axis=1)
+	gh    = set_gh(p)
+	e = gh
+	a = s_min
+	total = a + e
+
+	return total, e, a 
+
+def uncertainty_set17(probs, bootstrap_size=0, sampling_size=0, credal_size=0, log=False):
+	if bootstrap_size > 0:
+		p = [] #np.array(probs)
+		for data_point in probs:
+			d_p = []
+			for sampling_seed in range(bootstrap_size):
+				d_p.append(resample(data_point, random_state=sampling_seed))
+			p.append(np.array(d_p))
+		p = np.array(p)
+		p = np.mean(p, axis=2)
+	if sampling_size > 0:
+		p = [] 
+		for sample_index in range(sampling_size):
+			# number_of_samples = int(probs.shape[1] / sampling_size)
+			sampled_index = np.random.choice(probs.shape[1], credal_size)
+			p.append(probs[:,sampled_index,:])
+		p = np.array(p)
+		p = np.mean(p, axis=2)
+		p = p.transpose([1,0,2])
+	else:
+		p = probs
+		
+	if log:
+		print("------------------------------------set14 prob after averaging each ensemble")
+		print("Set14 p \n" , p)
+		print(p.shape)
+	# entropy = -p*np.log2(p)
+	entropy = -p*np.ma.log2(p)
+	entropy = entropy.filled(0)
+	p_m = np.mean(p, axis=1)
+	total = -np.sum(p_m*np.ma.log2(p_m), axis=1)
+	total = total.filled(0)
+	entropy_sum = np.sum(entropy, axis=2)
+	s_max = np.max(entropy_sum, axis=1)
+
+	gh    = set_gh(p)
+	e = gh
+	a = s_max
+	total = a + e
+
+	return total, e, a 
+
+
 
 def uncertainty_setmix(probs, credal_size=30):
 	p = [] #np.array(probs)
@@ -321,7 +408,7 @@ def uncertainty_set15_convex(probs, bootstrap_size=0):
 	s_min = np.array(s_min)
 	total = s_max
 	e = s_max - s_min
-	a = total - e
+	a = s_min #total - e
 	return total, e, a
 
 ################################################################################################################################################# GS agent
