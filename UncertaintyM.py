@@ -9,6 +9,7 @@ from scipy.optimize import minimize
 from sklearn.utils import resample
 from sklearn import preprocessing
 from scipy.optimize import minimize_scalar
+from scipy.optimize import linprog
 from scipy.stats import entropy
 import warnings
 random.seed(1)
@@ -118,15 +119,20 @@ def findallsubsets(s):
 def v_q(set_slice):
 	# sum
 	sum_slice = np.sum(set_slice, axis=2)
-	# max
-	max_slice = np.min(sum_slice, axis=1)
-	return max_slice
+	# min
+	print("v_q res before min  >>>>>>>> \n", sum_slice, sum_slice.shape)
+
+	min_slice = np.min(sum_slice, axis=1)
+	# print("v_q set_slice >>>>>>>> \n", set_slice, set_slice.shape)
+	print("v_q set14 >>>>>>>> ", min_slice.shape)
+	return min_slice
 
 def m_q(probs):
 	res = np.zeros(probs.shape[0])
 	index_set = set(range(probs.shape[2]))
 	subsets = findallsubsets(index_set) # this is B in the paper
 	set_A = subsets[-1]
+
 
 	for set_B in subsets:
 		set_slice = probs[:,:,list(set_B)]
@@ -140,6 +146,7 @@ def set_gh(probs):
 	res = np.zeros(probs.shape[0])
 	index_set = set(range(probs.shape[2]))
 	subsets = findallsubsets(index_set) # these subests are A in the paper
+	print("All subsets in GH ",subsets)
 
 	for subset in subsets:
 		set_slice = probs[:,:,list(subset)]
@@ -302,6 +309,119 @@ def uncertainty_set17(probs, bootstrap_size=0, sampling_size=0, credal_size=0, l
 	return total, e, a 
 
 
+
+
+def v_q18(set_slice, likelyhoods, epsilon):
+	m  = len(likelyhoods)
+	_m = 1/m
+
+	sum_slice = np.sum(set_slice, axis=2) # to sum over all subsets for j in J in V_Q equation of the paper
+	c_zeros = np.zeros((set_slice.shape[0],1))
+	c_alldata = np.concatenate((sum_slice * likelyhoods, c_zeros), axis=1)  # c is l*p sumed up for every j in J and then extented to c' by adding 0 for t (transformation of the LFP to LP)
+	d = np.concatenate((likelyhoods, [0]), axis=0)
+	d = np.reshape(d, (1,-1))
+
+	A = np.zeros((2*m+2, m+1)) # A' in wiki transform. it includes -b
+	A[0,:] = 1
+	A[0,-1] = -1
+	A[1,:] = -1
+	A[1,-1] = 1
+
+	for i in range(2,2*m+2):
+		for j in range(m+1):
+			if (i-2)/2 == j:
+				A[i,j]    = 1
+				A[i,-1]   = -1*_m - epsilon # this value is multiplied by -1 becase b is inside A as -b
+				A[i+1,j]  = -1
+				A[i+1,-1] = _m - epsilon # the same is true for the lower bound
+		i = i+1
+
+	b_ub = np.zeros(2*m+2)
+	b_eq = np.ones((1))
+	bounds = [ (None, None) for _ in range(m+1)]
+	bounds[-1] = (0, None) # this is for t>=0 in LFP to LP transformation
+
+	func_min = []
+	for c in c_alldata: # c is a single datapoint c
+		res = linprog(c, A_ub=A, b_ub=b_ub, A_eq=d, b_eq=b_eq, bounds=bounds)
+		y = np.delete(res.x,-1)
+		t = res.x[-1]
+		x = y / t
+		
+		cc = np.delete(c,-1)
+		dd = np.delete(d,-1)
+
+		func_value = (cc*x) / (dd*x)
+		func_value = func_value.sum() # this is to sum up all the hyposesies from m=1 to M
+		func_min.append(func_value)
+	res = np.array(func_min)
+	return res
+
+def m_q18(probs, likelyhoods, epsilon):
+	res = np.zeros(probs.shape[0])
+	index_set = set(range(probs.shape[2]))
+	subsets = findallsubsets(index_set) # this is B in the paper
+	set_A = subsets[-1]
+
+	for set_B in subsets:
+		set_slice = probs[:,:,list(set_B)]
+		set_minus = set_A - set_B
+		m_q_set = v_q18(set_slice, likelyhoods, epsilon) * ((-1) ** len(set_minus))
+		# print(f">>> {set_B}		 {m_q_set}")
+		res += m_q_set
+	return res
+
+def set_gh18(probs, likelyhoods, epsilon):
+	res = np.zeros(probs.shape[0])
+	index_set = set(range(probs.shape[2]))
+	subsets = findallsubsets(index_set) # these subests are A in the paper
+
+	for subset in subsets:
+		set_slice = probs[:,:,list(subset)]
+		m_q_slice = m_q18(set_slice, likelyhoods, epsilon)
+		res += m_q_slice * math.log2(len(subset))
+	return res
+
+
+def convex_ent_max18(s, p, l):
+	s = np.reshape(s,(-1,1))
+	l = np.reshape(l,(-1,1))
+	s_l_p = s * l * p
+	s_l = s * l
+	s_l_p_sum = np.sum(s_l_p, axis=0)
+	s_l_sum = np.sum(s_l, axis=0)
+	z = s_l_p_sum / s_l_sum # to get the formual for S^* in paper
+	entropy = z*np.log2(z)
+	entropy_sum = np.sum(entropy)
+	return entropy_sum * -1 # so that we maximize it
+
+def maxent18(probs, likelyhoods, epsilon):
+	m  = len(likelyhoods)
+	_m = 1/m
+
+	cons = ({'type': 'eq', 'fun': constarint})
+	b = (_m - epsilon, _m + epsilon)
+	bnds = [ b for _ in range(m) ]
+	x0 = np.ones((probs.shape[1]))
+	x0_sum = np.sum(x0)
+	x0 = x0 / x0_sum
+
+	s_max = []
+	for data_point_prob in probs:	
+		sol_max = minimize(convex_ent_max18, x0, args=(data_point_prob,likelyhoods), method='SLSQP', bounds=bnds, constraints=cons)
+		s_max.append(-sol_max.fun)
+
+	return s_max
+
+
+def uncertainty_set18(probs, likelyhoods, epsilon=0.1, log=False):
+	gh = set_gh18(probs, likelyhoods, epsilon)
+	s_max = maxent18(probs, likelyhoods, epsilon)
+
+	total = s_max
+	e = gh
+	a = total - e
+	return total, e, a 
 
 def uncertainty_setmix(probs, credal_size=30):
 	p = [] #np.array(probs)
