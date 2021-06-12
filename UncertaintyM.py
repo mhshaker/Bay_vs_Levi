@@ -331,9 +331,9 @@ def v_q18(set_slice, likelyhoods, epsilon):
 		for j in range(m+1):
 			if (i-2)/2 == j:
 				A[i,j]    = 1
-				A[i,-1]   = -1*_m - epsilon # this value is multiplied by -1 becase b is inside A as -b
+				A[i,-1]   = -1 * _m * epsilon # this value is multiplied by -1 becase b is inside A as -b # -1*_m - epsilon (the addetive constraint)
 				A[i+1,j]  = -1
-				A[i+1,-1] = _m - epsilon # the same is true for the lower bound
+				A[i+1,-1] = _m * (1/ epsilon) # the same is true for the lower bound # _m - epsilon (the addetive constraint)
 		i = i+1
 
 	b_ub = np.zeros(2*m+2)
@@ -391,30 +391,72 @@ def convex_ent_max18(s, p, l):
 	s_l_p_sum = np.sum(s_l_p, axis=0)
 	s_l_sum = np.sum(s_l, axis=0)
 	z = s_l_p_sum / s_l_sum # to get the formual for S^* in paper
-	entropy = z*np.log2(z)
+	entropy = -z*np.log2(z)
 	entropy_sum = np.sum(entropy)
 	return entropy_sum * -1 # so that we maximize it
+
+def convex_ent_min18(s, p, l):
+	s = np.reshape(s,(-1,1))
+	l = np.reshape(l,(-1,1))
+	s_l_p = s * l * p
+	s_l = s * l
+	s_l_p_sum = np.sum(s_l_p, axis=0)
+	s_l_sum = np.sum(s_l, axis=0)
+	z = s_l_p_sum / s_l_sum # to get the formual for S^* in paper
+	entropy = -z*np.log2(z)
+	entropy_sum = np.sum(entropy)
+	return entropy_sum # so that we minimize it
+
+
+def get_random_with_constraint(size, bound, tries=10000):
+	x = []
+	b_array = np.array(bound)
+	for i in range(tries):
+		x = np.random.dirichlet(np.ones(size),size=1)
+		x = x[0]
+		if np.less_equal(x, b_array[:,1]).all() and np.greater_equal(x, b_array[:,0]).all():
+			return x
+	print(f"[Warning] Did not find a random x within the bounds in {tries} tries")
+	return x
+
 
 def maxent18(probs, likelyhoods, epsilon):
 	m  = len(likelyhoods)
 	_m = 1/m
 
 	cons = ({'type': 'eq', 'fun': constarint})
-	b = (_m - epsilon, _m + epsilon)
+	b = (_m * (1 / epsilon), _m * epsilon) # (_m - epsilon, _m + epsilon) addetive constraint
 	bnds = [ b for _ in range(m) ]
-	x0 = np.ones((probs.shape[1]))
-	x0_sum = np.sum(x0)
-	x0 = x0 / x0_sum
+	# x0 = np.ones((probs.shape[1]))
+	# x0_sum = np.sum(x0)
+	# x0 = x0 / x0_sum
+	# print(x0)
+	x0 = get_random_with_constraint(probs.shape[1],bnds)
 
 	s_max = []
 	for data_point_prob in probs:	
 		sol_max = minimize(convex_ent_max18, x0, args=(data_point_prob,likelyhoods), method='SLSQP', bounds=bnds, constraints=cons)
+		sol_min = minimize(convex_ent_min18, x0, args=(data_point_prob,likelyhoods), method='SLSQP', bounds=bnds, constraints=cons)
+		# sanity test
+		if test==True:
+			for i in range(100):
+				# generate random s
+				rand_s = get_random_with_constraint(probs.shape[1],bnds)
+				# ent_rand = calculete convex_ent_max18 with random s
+				rand_ent = convex_ent_max18(rand_s, data_point_prob, likelyhoods) * -1
+				# compare with sol_max
+				# if ent_rand > sol_max print test failed
+				if rand_ent > -sol_max.fun or rand_ent < sol_min.fun:
+					print(f">>>>>>>>> [Failed] the test {i} rand_ent {rand_ent} max_ent {-sol_max.fun} min_ent {sol_min.fun} ")
+				else:
+					print(f"pass rand_ent {rand_ent} max_ent {-sol_max.fun} min_ent {sol_min.fun}")
+
 		s_max.append(-sol_max.fun)
 
 	return s_max
 
 
-def uncertainty_set18(probs, likelyhoods, epsilon=0.1, log=False):
+def uncertainty_set18(probs, likelyhoods, epsilon=2, log=False):
 	gh = set_gh18(probs, likelyhoods, epsilon)
 	s_max = maxent18(probs, likelyhoods, epsilon)
 
