@@ -13,27 +13,27 @@ if not os.path.exists(pic_dir):
     os.makedirs(pic_dir)
 
 unc_value_plot = False
-local = True
+local = False
 color_correct = False
 vertical_plot = False
-single_plot = True
+single_plot = False
 
-data_list  = ["parkinsons","vertebral","breast","climate", "ionosphere", "blod", "bank", "QSAR", "spambase", "wine_qw"] 
+# data_list  = ["parkinsons","vertebral","breast","climate", "ionosphere", "blod", "bank", "QSAR", "spambase", "wine_qw"] 
 # data_list  = ["vertebral","breast", "ionosphere", "blod", "QSAR", "wine_qw"] 
 # data_list = ["climate", "parkinsons", "spambase"]
 # data_list = ["climate", "vertebral"]
-# data_list = ["parkinsons"]
+data_list = ["parkinsons"]
 modes     = "eat"
 
 for data in data_list:
     
     # prameters ############################################################################################################################################
 
-    run_name  = "main_UAI"
-    plot_name = data + "_S_leviGH"
+    run_name  = "LFPleviVSbays"
+    plot_name = data + "_LFPlevi"
     # query       = f"SELECT results, id , prams, result_type FROM experiments Where task='unc' AND dataset='Jdata/{data}' AND run_name='{run_name}'"
-    query       = f"SELECT results, id , prams, result_type FROM experiments Where task='unc' AND dataset='Jdata/{data}' AND run_name='{run_name}' AND result_type='levi.GH'"
-    # query       = f"SELECT results, id , prams, result_type FROM experiments Where task='unc' AND id=4706"
+    # query       = f"SELECT results, id , prams, result_type FROM experiments Where task='unc' AND dataset='Jdata/{data}' AND run_name='{run_name}' AND result_type='levi.GH'"
+    query       = f"SELECT results, id , prams, result_type FROM experiments Where task='unc' AND id>=4759"
 
     ########################################################################################################################################################
     xlabel      = "Rejection %"
