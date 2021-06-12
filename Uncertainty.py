@@ -6,8 +6,8 @@ import numpy as np
 import Data.data_provider as dp
 import Data.data_generator as dg
 import Algo.a_DF as df
-import Algo.a_eRF as erf
-import Algo.a_Tree as tree
+# import Algo.a_eRF as erf
+# import Algo.a_Tree as tree
 import mysql.connector as db
 import sklearn
 import ray
@@ -20,10 +20,10 @@ def uncertainty_quantification(seed, features, target, prams, mode, algo, dir):
     
     if algo == "DF":
         predictions , t_unc, e_unc, a_unc, model = df.DF_run(x_train, x_test, y_train, y_test, prams, unc_method, seed)
-    elif algo == "eRF":
-        predictions , t_unc, e_unc, a_unc, model = erf.eRF_run(x_train, x_test, y_train, y_test, prams, unc_method, seed)
-    elif algo == "Tree":
-        predictions , t_unc, e_unc, a_unc, model = tree.Tree_run(x_train, x_test, y_train, y_test, prams, unc_method, seed)
+    # elif algo == "eRF":
+    #     predictions , t_unc, e_unc, a_unc, model = erf.eRF_run(x_train, x_test, y_train, y_test, prams, unc_method, seed)
+    # elif algo == "Tree":
+    #     predictions , t_unc, e_unc, a_unc, model = tree.Tree_run(x_train, x_test, y_train, y_test, prams, unc_method, seed)
     # elif algo == "BN":
     #     y_train_BN, y_test_BN, model = bn.BN_init(x_train, x_test, y_train, y_test, prams, unc_method, seed)
     #     acc , t_unc, e_unc, a_unc, model = bn.BN_run(x_train, x_test, y_train, y_test, 0, 0, prams, unc_method, seed, model, active_step=0) 
@@ -68,7 +68,7 @@ if __name__ == '__main__':
     runs = 1
     data_name = "Jdata/parkinsons"
     algo = "DF"
-    unc_method = "levidir.GH"
+    unc_method = "set18"
     prams = {
     # 'criterion'        : "entropy",
     'max_depth'        : 10,
