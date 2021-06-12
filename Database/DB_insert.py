@@ -3,12 +3,12 @@ import os
 
 auto_run = False
 
-data_names     = ["Jdata/vertebral","Jdata/parkinsons","Jdata/ionosphere", "Jdata/climate", "Jdata/blod", "Jdata/breast","Jdata/bank", "Jdata/QSAR", "Jdata/spambase", "Jdata/wine_qw"] # 
+# data_names     = ["Jdata/vertebral","Jdata/parkinsons","Jdata/ionosphere", "Jdata/climate", "Jdata/blod", "Jdata/breast","Jdata/bank", "Jdata/QSAR", "Jdata/spambase", "Jdata/wine_qw"] # 
 # data_names     = ["Jdata/parkinsons","Jdata/ionosphere", "Jdata/blod", "Jdata/breast", "Jdata/QSAR", "Jdata/wine_qw"] # 
 # data_names     = ["Jdata/vertebral", "Jdata/climate","Jdata/bank", "Jdata/spambase"] # 
-# data_names     = ["Jdata/parkinsons", "Jdata/vertebral"] 
+data_names     = ["Jdata/parkinsons"] 
 algos          = ["DF"] # ,"LR"
-modes          = ["bays", "levi3.GH","levi3.ent"] #  "levi.ent", "levi.GH.conv", "levi.ent.conv"  "levi.ent" ["ent_e","ent_a","ent_t", "random"]  # ent_e","ent_a","ent_t  "set14", "set15", "set14.convex", "set15.convex", "ent.levi"
+modes          = ["bays", "set18"] #  "levi.ent", "levi.GH.conv", "levi.ent.conv"  "levi.ent" ["ent_e","ent_a","ent_t", "random"]  # ent_e","ent_a","ent_t  "set14", "set15", "set14.convex", "set15.convex", "ent.levi"
 # modes          = [] 
 task           = "unc"
 runs           = 100
@@ -17,7 +17,7 @@ prams = {
 'n_estimators'       : 100,
 'credal_size'        : 10,
 # 'credal_L'           : 1.5,
-'credal_sample_size' : 200,
+# 'credal_sample_size' : 200,
 'laplace_smoothing'  : 1,
 'split'              : 0.30,
 'run_start'          : 0,
@@ -27,7 +27,7 @@ prams = {
 for algo in algos:
     for data_name in data_names:
         for mode in modes:
-            run_name       = "levi_many_UAI" #f"{mode}_{algo}" + "noctua_test" # if you want a specific name give it here
+            run_name       = "LFPleviVSbays" #f"{mode}_{algo}" + "noctua_test" # if you want a specific name give it here
             description    = "acc_hist"
 
             mydb = db.connect(host="131.234.250.119", user="noctua", passwd="uncertainty", database="uncertainty")
