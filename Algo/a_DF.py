@@ -85,8 +85,13 @@ def DF_run(x_train, x_test, y_train, y_test, pram, unc_method, seed, predict=Tru
         porb_matrix = get_prob_matrix(model, x_test, pram["n_estimators"], pram["laplace_smoothing"])
         porb_matrix = np.array(porb_matrix)
         total_uncertainty, epistemic_uncertainty, aleatoric_uncertainty = unc.uncertainty_set15_convex(porb_matrix, pram["credal_size"])
+    elif "set18" == unc_method:
+        likelyhoods = get_likelyhood(model, x_train, y_train, pram["n_estimators"], pram["laplace_smoothing"])
+        porb_matrix = get_prob(model, x_test, pram["n_estimators"], pram["laplace_smoothing"])
+        total_uncertainty, epistemic_uncertainty, aleatoric_uncertainty = unc.uncertainty_set18(porb_matrix, likelyhoods)
     elif "bays" == unc_method:
         likelyhoods = get_likelyhood(model, x_train, y_train, pram["n_estimators"], pram["laplace_smoothing"])
+        print("bays likelyhoods >>>>>>", likelyhoods)
         # accs = get_acc(model, x_train, y_train, pram["n_estimators"])
         porb_matrix = get_prob(model, x_test, pram["n_estimators"], pram["laplace_smoothing"])
         total_uncertainty, epistemic_uncertainty, aleatoric_uncertainty = unc.uncertainty_ent_bays(porb_matrix, likelyhoods)
@@ -199,7 +204,7 @@ def get_likelyhood(model_ens, x_train, y_train, n_estimators, laplace_smoothing,
     if log:
         print(f"<log>----------------------------------------[{etree}]")
         print(f"likelyhoods = {likelyhoods}")
-    return likelyhoods
+    return np.array(likelyhoods)
 
 def get_acc(model_ens, x_train, y_train, n_estimators, log=False):
     accs = []
@@ -246,7 +251,6 @@ def tree_laplace_corr(tree, x_data, laplace_smoothing, a=0, b=0):
             # print(f"i {i} v {v} a {a} b {b} L {L} prob {(v + L) / (leaf_samples + (len(leaf_values[0]) * L))}")
             tree_prob[data_index][i] = (v + L) / (leaf_samples + (len(leaf_values[0]) * L))
     return tree_prob
-
 
 def ens_boot_likelihood(ens, x_train, y_train, x_test, n_estimators, bootstrap_size, laplace_smoothing):
     # ens_prob = ens.predict_proba(x_test)

@@ -120,11 +120,11 @@ def v_q(set_slice):
 	# sum
 	sum_slice = np.sum(set_slice, axis=2)
 	# min
-	print("v_q res before min  >>>>>>>> \n", sum_slice, sum_slice.shape)
+	# print("v_q res before min  >>>>>>>> \n", sum_slice, sum_slice.shape)
 
 	min_slice = np.min(sum_slice, axis=1)
 	# print("v_q set_slice >>>>>>>> \n", set_slice, set_slice.shape)
-	print("v_q set14 >>>>>>>> ", min_slice.shape)
+	# print("v_q set14 >>>>>>>> ", min_slice.shape)
 	return min_slice
 
 def m_q(probs):
@@ -146,7 +146,7 @@ def set_gh(probs):
 	res = np.zeros(probs.shape[0])
 	index_set = set(range(probs.shape[2]))
 	subsets = findallsubsets(index_set) # these subests are A in the paper
-	print("All subsets in GH ",subsets)
+	# print("All subsets in GH ",subsets)
 
 	for subset in subsets:
 		set_slice = probs[:,:,list(subset)]
