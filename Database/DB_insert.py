@@ -14,7 +14,7 @@ task           = "unc"
 runs           = 100
 prams = {
 'max_depth'          : 10,
-'n_estimators'       : 100,
+'n_estimators'       : 10,
 'credal_size'        : 10,
 # 'credal_L'           : 1.5,
 # 'credal_sample_size' : 200,

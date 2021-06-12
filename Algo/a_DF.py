@@ -91,7 +91,7 @@ def DF_run(x_train, x_test, y_train, y_test, pram, unc_method, seed, predict=Tru
         total_uncertainty, epistemic_uncertainty, aleatoric_uncertainty = unc.uncertainty_set18(porb_matrix, likelyhoods)
     elif "bays" == unc_method:
         likelyhoods = get_likelyhood(model, x_train, y_train, pram["n_estimators"], pram["laplace_smoothing"])
-        print("bays likelyhoods >>>>>>", likelyhoods)
+        # print("bays likelyhoods >>>>>>", likelyhoods)
         # accs = get_acc(model, x_train, y_train, pram["n_estimators"])
         porb_matrix = get_prob(model, x_test, pram["n_estimators"], pram["laplace_smoothing"])
         total_uncertainty, epistemic_uncertainty, aleatoric_uncertainty = unc.uncertainty_ent_bays(porb_matrix, likelyhoods)
