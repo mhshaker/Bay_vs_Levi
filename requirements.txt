@@ -3,4 +3,3 @@ scikit-learn
 matplotlib
 mysql-connector-python
 ray
-arff
