@@ -3,11 +3,11 @@ import os
 
 auto_run = False
 
-# data_names     = ["Jdata/vertebral","Jdata/ionosphere", "Jdata/climate", "Jdata/blod", "Jdata/breast","Jdata/bank", "Jdata/QSAR", "Jdata/spambase"] # 
+data_names     = ["Jdata/vertebral","Jdata/ionosphere", "Jdata/climate", "Jdata/blod", "Jdata/breast","Jdata/bank", "Jdata/QSAR", "Jdata/spambase", "Jdata/iris", "Jdata/heartdisease"] # 
 # data_names     = ["Jdata/parkinsons","Jdata/ionosphere", "Jdata/blod", "Jdata/breast", "Jdata/QSAR", "Jdata/wine_qw"] # 
 # data_names     = ["Jdata/vertebral", "Jdata/climate","Jdata/bank", "Jdata/spambase"] # 
 # data_names     = ["Jdata/iris"] 
-data_names     = ["Jdata/parkinsons"] 
+# data_names     = ["Jdata/parkinsons"] 
 algos          = ["DF"] # ,"LR"
 modes          = ["bays", "set18"] #  "levi.ent", "levi.GH.conv", "levi.ent.conv"  "levi.ent" ["ent_e","ent_a","ent_t", "random"]  # ent_e","ent_a","ent_t  "set14", "set15", "set14.convex", "set15.convex", "ent.levi"
 # modes          = [] 
@@ -31,7 +31,7 @@ prams = {
 for algo in algos:
     for data_name in data_names:
         for mode in modes:
-            run_name       = "v_q18_2_2" #f"{mode}_{algo}" + "noctua_test" # if you want a specific name give it here
+            run_name       = "newOptimizer" #f"{mode}_{algo}" + "noctua_test" # if you want a specific name give it here
             description    = "acc_hist"
 
             mydb = db.connect(host="131.234.250.119", user="noctua", passwd="uncertainty", database="uncertainty")
