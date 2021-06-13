@@ -1,21 +1,31 @@
-from scipy.optimize import linprog
+# import numpy as np
+
+# x = np.array([[[1,2],[3,4],[5,6]],[[1,2],[3,4],[5,6]]])
+# y = np.array([1,2,3])
+# y = np.reshape(y,(-1,1,1))
+# print(x)
+# print(y)
+
+# c = x*y
+# print(c)
+
 import numpy as np
-# find max of 2x0 + x1
-# 3x0 + x1 <= 7
-# 1x0 + 2x1 <= 9
-# x0 >= 0
-# x1 >= 0
 
+a = np.random.randint(0,9,(2,3,2))
+b = np.random.randint(0,9,(3))
+print("------------------------------------a")
+print(a)
+print("------------------------------------b")
+print(b)
 
-c = [-2, -1]
-A = [[3, 1], [1, 2]]
-b = np.array([7, 9])
-x0_bounds = (0, None)
-x1_bounds = (0, None)
+given_axis = 1
 
-res = linprog(c, A_ub=A, b_ub=b, bounds=[x0_bounds, x1_bounds])
+dim_array = np.ones((1,a.ndim),int).ravel()
+dim_array[given_axis] = -1
 
-print(res)
+b_reshaped = b.reshape(dim_array)
+mult_out = a*b_reshaped
 
+print("------------------------------------res")
 
-
+print(mult_out)

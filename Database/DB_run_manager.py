@@ -19,7 +19,7 @@ mydb = db.connect(host="131.234.250.119", user="noctua", passwd="uncertainty", d
 mycursor = mydb.cursor()
 
 if(mode == "get"):
-    mycursor.execute(f"SELECT id, runs FROM experiments Where status='pending' AND task='{var}' AND id>=4759")  # remove  "AND id>=4759" if you want to run old pending tasks
+    mycursor.execute(f"SELECT id, runs FROM experiments Where status='pending' AND task='{var}' AND id>=4793")  # remove  "AND id>=4793" if you want to run old pending tasks
     results = mycursor.fetchall()
 
     print("id\ttabruns")

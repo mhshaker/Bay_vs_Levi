@@ -34,18 +34,29 @@ def uncertainty_ent(probs): # three dimentianl array with d1 as datapoints, (d2)
 
 def uncertainty_ent_bays(probs, likelihoods): # three dimentianl array with d1 as datapoints, (d2) the rows as samples and (d3) the columns as probability for each class
 	p = np.array(probs)
+	# print("prob\n", probs)
+	# print("likelihoods in bays", likelihoods)
 	entropy = -p*np.ma.log2(p)
 	entropy = entropy.filled(0)
+	# print("entropy\n", entropy)
 
 	a = np.sum(entropy, axis=2)
 	al = a * likelihoods
 	a = np.sum(al, axis=1)
 
-	p_m = np.mean(p, axis=1) #* likelihoods
+	given_axis = 1
+	dim_array = np.ones((1,probs.ndim),int).ravel()
+	dim_array[given_axis] = -1
+	b_reshaped = likelihoods.reshape(dim_array)
+	mult_out = probs*b_reshaped
+	p_m = np.sum(mult_out, axis=1)
+
+	# p_m = np.mean(p, axis=1) #* likelihoods
+
 	total = -np.sum(p_m*np.ma.log2(p_m), axis=1)
 	total = total.filled(0)
 	e = total - a
-	return total, e, a # now it should be correct
+	return total, e, a
 
 
 def uncertainty_ent_levi(probs, credal_size=30): # three dimentianl array with d1 as datapoints, (d2) the rows as samples and (d3) the columns as probability for each class
@@ -353,6 +364,27 @@ def v_q18(set_slice, likelyhoods, epsilon):
 
 		func_value = (cc*x) / (dd*x)
 		func_value = func_value.sum() # this is to sum up all the hyposesies from m=1 to M
+
+		########## Sanity test for V_Q(A)
+
+		# bnds = [ (_m * (1 / epsilon), _m * epsilon) for _ in range(m) ]
+		# for i in range(100):
+		# 	# generate random s
+		# 	rand_s = get_random_with_constraint(m,bnds)
+		# 	# ent_rand = calculete V_Q(A) with random s
+		# 	rand_vqa = (cc*rand_s) / (dd*rand_s)
+		# 	rand_vqa = rand_vqa.sum() # this is to sum up all the hyposesies from m=1 to M
+
+		# 	# compare
+		# 	if rand_vqa < func_value:
+		# 		print(f">>>>>>>>> [Failed] the test {i} rand_vqa {rand_vqa} min_vqa {func_value}  diff {func_value - rand_vqa}")
+		# 	else:
+		# 		pass
+		# 		# print(f"pass rand_vqa {rand_vqa} min_vqa {func_value}")
+
+
+		########## end test
+
 		func_min.append(func_value)
 	res = np.array(func_min)
 	return res
@@ -436,20 +468,24 @@ def maxent18(probs, likelyhoods, epsilon):
 	s_max = []
 	for data_point_prob in probs:	
 		sol_max = minimize(convex_ent_max18, x0, args=(data_point_prob,likelyhoods), method='SLSQP', bounds=bnds, constraints=cons)
-		sol_min = minimize(convex_ent_min18, x0, args=(data_point_prob,likelyhoods), method='SLSQP', bounds=bnds, constraints=cons)
-		# sanity test
-		if test==True:
-			for i in range(100):
-				# generate random s
-				rand_s = get_random_with_constraint(probs.shape[1],bnds)
-				# ent_rand = calculete convex_ent_max18 with random s
-				rand_ent = convex_ent_max18(rand_s, data_point_prob, likelyhoods) * -1
-				# compare with sol_max
-				# if ent_rand > sol_max print test failed
-				if rand_ent > -sol_max.fun or rand_ent < sol_min.fun:
-					print(f">>>>>>>>> [Failed] the test {i} rand_ent {rand_ent} max_ent {-sol_max.fun} min_ent {sol_min.fun} ")
-				else:
-					print(f"pass rand_ent {rand_ent} max_ent {-sol_max.fun} min_ent {sol_min.fun}")
+
+		####### sanity test on S^* and S_*
+		
+		# sol_min = minimize(convex_ent_min18, x0, args=(data_point_prob,likelyhoods), method='SLSQP', bounds=bnds, constraints=cons)
+		# if test==True:
+		# 	for i in range(100):
+		# 		# generate random s
+		# 		rand_s = get_random_with_constraint(probs.shape[1],bnds)
+		# 		# ent_rand = calculete convex_ent_max18 with random s
+		# 		rand_ent = convex_ent_max18(rand_s, data_point_prob, likelyhoods) * -1
+		# 		# compare with sol_max
+		# 		# if ent_rand > sol_max print test failed
+		# 		if rand_ent > -sol_max.fun or rand_ent < sol_min.fun:
+		# 			print(f">>>>>>>>> [Failed] the test {i} rand_ent {rand_ent} max_ent {-sol_max.fun} min_ent {sol_min.fun} ")
+		# 		else:
+		# 			print(f"pass rand_ent {rand_ent} max_ent {-sol_max.fun} min_ent {sol_min.fun}")
+
+		####### end test (test passed)
 
 		s_max.append(-sol_max.fun)
 

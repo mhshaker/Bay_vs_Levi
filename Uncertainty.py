@@ -68,16 +68,18 @@ if __name__ == '__main__':
     runs = 1
     data_name = "Jdata/parkinsons"
     algo = "DF"
-    unc_method = "set18"
+    unc_method = "bays"
     prams = {
     # 'criterion'        : "entropy",
     'max_depth'        : 10,
 
     'n_estimators'     : 3,
 
-    'credal_size'      : 10,
-    'credal_sample_size' : 5,
-    'credal_L'           : 3,
+    'epsilon'          : 2,
+
+    # 'credal_size'      : 10,
+    # 'credal_sample_size' : 5,
+    # 'credal_L'           : 3,
 
     # 'dropconnect_prob' : 0.2,
     # 'epochs'           : 1,
