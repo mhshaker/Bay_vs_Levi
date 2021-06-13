@@ -11,21 +11,13 @@
 
 import numpy as np
 
-a = np.random.randint(0,9,(2,3,2))
-b = np.random.randint(0,9,(3))
-print("------------------------------------a")
+a = np.random.randint(0,9,(2,2))
+b = np.random.randint(0,9,(2,1))
 print(a)
 print("------------------------------------b")
 print(b)
 
-given_axis = 1
+c = a * b
+print("------------------------------------c")
 
-dim_array = np.ones((1,a.ndim),int).ravel()
-dim_array[given_axis] = -1
-
-b_reshaped = b.reshape(dim_array)
-mult_out = a*b_reshaped
-
-print("------------------------------------res")
-
-print(mult_out)
+print(c)

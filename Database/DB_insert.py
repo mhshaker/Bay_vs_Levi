@@ -31,7 +31,7 @@ prams = {
 for algo in algos:
     for data_name in data_names:
         for mode in modes:
-            run_name       = "GH_random_min" #f"{mode}_{algo}" + "noctua_test" # if you want a specific name give it here
+            run_name       = "v_q18_2_2" #f"{mode}_{algo}" + "noctua_test" # if you want a specific name give it here
             description    = "acc_hist"
 
             mydb = db.connect(host="131.234.250.119", user="noctua", passwd="uncertainty", database="uncertainty")

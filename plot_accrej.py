@@ -30,10 +30,10 @@ for data in data_list:
     # prameters ############################################################################################################################################
 
     run_name  = "GHsimplex"
-    plot_name = data + "random_min"
+    plot_name = data + "v_q18_2"
     # query       = f"SELECT results, id , prams, result_type FROM experiments Where task='unc' AND dataset='Jdata/{data}' AND run_name='{run_name}' AND status='done'"
     # query       = f"SELECT results, id , prams, result_type FROM experiments Where task='unc' AND dataset='Jdata/{data}' AND run_name='{run_name}' AND result_type='levi.GH'"
-    query       = f"SELECT results, id , prams, result_type FROM experiments Where task='unc' AND id>=4860"
+    query       = f"SELECT results, id , prams, result_type FROM experiments Where task='unc' AND id>=4864"
 
     ########################################################################################################################################################
     xlabel      = "Rejection %"

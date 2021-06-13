@@ -138,7 +138,7 @@ if __name__ == '__main__':
         features, target = dp.load_data(data_name)
 
         print(f"job_id {job_id} start")
-        
+
         ray.init()
         ray_array = []
         for seed in range(0,runs):

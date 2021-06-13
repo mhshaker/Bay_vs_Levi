@@ -320,16 +320,94 @@ def uncertainty_set17(probs, bootstrap_size=0, sampling_size=0, credal_size=0, l
 	return total, e, a 
 
 
+def v_q_a(s, l, p):
+	s = np.reshape(s,(-1,1))
+	l = np.reshape(l,(-1,1))
+	# print("------------------------------------ [start of V_Q_A]")
 
+	# print("s\n",s)
+	# print("l\n",l)
+	# print("p\n",p)
 
-def v_q18(set_slice, likelyhoods, epsilon):
-	# print("------------------------------------start v_q18 set_slice.shape\n", set_slice)
+	# print("------------------------------------")
+	s_l_p = s * l * p
+	s_l = s * l
+
+	# print(s_l_p)
+	# print(s_l)
+	# print("------------------------------------first sum for m")
+	s_l_p_sum  = np.sum(s_l_p, axis=0)
+	# print(s_l_p_sum)
+	# print("------------------------------------second sum for j")
+	s_l_p_j_sum = np.sum(s_l_p_sum, axis=0)
+	# print(s_l_p_j_sum)
+
+	s_l_sum = np.sum(s_l)
+	# print(s_l_sum)
+	z = s_l_p_j_sum / s_l_sum 
+	# print("------------------------------------final value")
+	# print(z)
+	# print("------------------------------------ [end of V_Q_A]")
+	return z
+
+def v_q18_2(set_slice, likelyhoods, epsilon):
 	m  = len(likelyhoods)
 	_m = 1/m
 
-	sum_slice = np.sum(set_slice, axis=2) # to sum over all subsets for j in J in V_Q equation of the paper
-	c_zeros = np.zeros((set_slice.shape[0],1))
-	c_alldata = np.concatenate((sum_slice * likelyhoods, c_zeros), axis=1)  # c is l*p sumed up for every j in J and then extented to c' by adding 0 for t (transformation of the LFP to LP)
+	# print("set_slice\n", set_slice)
+	# print("likelyhoods\n", likelyhoods)
+	# print("------------------------------------")
+
+	cons = ({'type': 'eq', 'fun': constarint})
+	b = (_m * (1 / epsilon), _m * epsilon) # (_m - epsilon, _m + epsilon) addetive constraint
+	bnds = [ b for _ in range(m) ]
+	x0 = get_random_with_constraint(set_slice.shape[1],bnds)
+
+	s_min = []
+	for data_point_prob in set_slice:	
+		sol_min = minimize(v_q_a, x0, args=(likelyhoods,data_point_prob), method='SLSQP', bounds=bnds, constraints=cons)
+		s_min.append(sol_min.fun)
+
+		####### sanity test on S^* and S_*
+		
+		# for i in range(100):
+		# 	# generate random s
+		# 	rand_s = get_random_with_constraint(set_slice.shape[1],bnds)
+		# 	# ent_rand = calculete convex_ent_max18 with random s
+		# 	rand_v_q_a = v_q_a(rand_s, likelyhoods, data_point_prob)
+		# 	# compare 
+		# 	if rand_v_q_a < sol_min.fun:
+		# 		print(f">>>>>>>>> [Failed] the test {i} rand_v_q_a {rand_v_q_a} min_v_q_a {sol_min.fun} ")
+		# 	else:
+		# 		print(f"pass rand_v_q_a {rand_v_q_a}  min_v_q_a {sol_min.fun}")
+
+		####### end test (test passed)
+
+
+	res = np.array(s_min)
+	return res
+
+def v_q18(set_slice, likelyhoods, epsilon):
+	print("------------------------------------start v_q18 set_slice.shape\n", set_slice)
+	print(likelyhoods)
+	m  = len(likelyhoods)
+	_m = 1/m
+
+	# sum_slice = np.sum(set_slice, axis=2) # to sum over all subsets for j in J in V_Q equation of the paper
+	c_zeros = np.zeros((set_slice.shape[0],set_slice.shape[2]))
+
+
+	given_axis = 1
+	dim_array = np.ones((1,set_slice.ndim),int).ravel()
+	dim_array[given_axis] = -1
+	b_reshaped = likelyhoods.reshape(dim_array)
+	lp = set_slice*b_reshaped
+	# p_m = np.sum(mult_out, axis=1)
+	print("------------------------------------")
+	print(lp)
+	c_alldata = np.concatenate((lp, c_zeros), axis=1)  # c is l*p sumed up for every j in J and then extented to c' by adding 0 for t (transformation of the LFP to LP)
+	print(c_alldata)
+	exit()
 	d = np.concatenate((likelyhoods, [0]), axis=0)
 	d = np.reshape(d, (1,-1))
 
@@ -402,7 +480,8 @@ def m_q18(probs, likelyhoods, epsilon):
 	for set_B in subsets:
 		set_slice = probs[:,:,list(set_B)]
 		set_minus = set_A - set_B
-		m_q_set = v_q18(set_slice, likelyhoods, epsilon) * ((-1) ** len(set_minus))
+		# m_q_set = v_q18(set_slice, likelyhoods, epsilon) * ((-1) ** len(set_minus))
+		m_q_set = v_q18_2(set_slice, likelyhoods, epsilon) * ((-1) ** len(set_minus))
 		# print(f">>> {set_B}		 {m_q_set}")
 		res += m_q_set
 	return res
@@ -463,10 +542,6 @@ def maxent18(probs, likelyhoods, epsilon):
 	cons = ({'type': 'eq', 'fun': constarint})
 	b = (_m * (1 / epsilon), _m * epsilon) # (_m - epsilon, _m + epsilon) addetive constraint
 	bnds = [ b for _ in range(m) ]
-	# x0 = np.ones((probs.shape[1]))
-	# x0_sum = np.sum(x0)
-	# x0 = x0 / x0_sum
-	# print(x0)
 	x0 = get_random_with_constraint(probs.shape[1],bnds)
 
 	s_max = []
