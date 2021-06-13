@@ -68,7 +68,7 @@ if __name__ == '__main__':
     runs = 1
     data_name = "Jdata/parkinsons"
     algo = "DF"
-    unc_method = "set18"
+    unc_method = "set19"
     prams = {
     # 'criterion'        : "entropy",
     'max_depth'        : 10,

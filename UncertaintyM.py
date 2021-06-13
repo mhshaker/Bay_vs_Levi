@@ -568,7 +568,23 @@ def maxent18(probs, likelyhoods, epsilon):
 
 		s_max.append(-sol_max.fun)
 
-	return s_max
+	return np.array(s_max)
+
+def minent19(probs, likelyhoods, epsilon):
+	m  = len(likelyhoods)
+	_m = 1/m
+
+	cons = ({'type': 'eq', 'fun': constarint})
+	b = (_m * (1 / epsilon), _m * epsilon) # (_m - epsilon, _m + epsilon) addetive constraint
+	bnds = [ b for _ in range(m) ]
+	x0 = get_random_with_constraint(probs.shape[1],bnds)
+
+	s_min = []
+	for data_point_prob in probs:	
+		sol_min = minimize(convex_ent_min18, x0, args=(data_point_prob,likelyhoods), method='SLSQP', bounds=bnds, constraints=cons)
+		s_min.append(sol_min.fun)
+
+	return np.array(s_min)
 
 
 def uncertainty_set18(probs, likelyhoods, epsilon=2, log=False):
@@ -579,6 +595,16 @@ def uncertainty_set18(probs, likelyhoods, epsilon=2, log=False):
 	e = gh
 	a = total - e
 	return total, e, a 
+
+def uncertainty_set19(probs, likelyhoods, epsilon=2, log=False):
+	s_max = maxent18(probs, likelyhoods, epsilon)
+	s_min = minent19(probs, likelyhoods, epsilon)
+
+	total = s_max
+	e = s_max - s_min
+	a = s_min
+	return total, e, a 
+
 
 def uncertainty_setmix(probs, credal_size=30):
 	p = [] #np.array(probs)
