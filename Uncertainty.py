@@ -68,7 +68,7 @@ if __name__ == '__main__':
     runs = 1
     data_name = "Jdata/parkinsons"
     algo = "DF"
-    unc_method = "bays"
+    unc_method = "set18"
     prams = {
     # 'criterion'        : "entropy",
     'max_depth'        : 10,
@@ -138,11 +138,13 @@ if __name__ == '__main__':
         features, target = dp.load_data(data_name)
 
         print(f"job_id {job_id} start")
+        
         ray.init()
         ray_array = []
         for seed in range(0,runs):
             ray_array.append(uncertainty_quantification.remote(seed, features, target, prams, unc_method, algo, dir))
         res_array = ray.get(ray_array)
+
         # uncertainty_quantification(seed, features, target, prams, unc_method, algo, dir)
 
     if len(sys.argv) > 1:

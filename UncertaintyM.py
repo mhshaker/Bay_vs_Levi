@@ -323,6 +323,7 @@ def uncertainty_set17(probs, bootstrap_size=0, sampling_size=0, credal_size=0, l
 
 
 def v_q18(set_slice, likelyhoods, epsilon):
+	# print("------------------------------------start v_q18 set_slice.shape\n", set_slice)
 	m  = len(likelyhoods)
 	_m = 1/m
 
@@ -354,7 +355,7 @@ def v_q18(set_slice, likelyhoods, epsilon):
 
 	func_min = []
 	for c in c_alldata: # c is a single datapoint c
-		res = linprog(c, A_ub=A, b_ub=b_ub, A_eq=d, b_eq=b_eq, bounds=bounds)
+		res = linprog(c, A_ub=A, b_ub=b_ub, A_eq=d, b_eq=b_eq, bounds=bounds, method='revised simplex')
 		y = np.delete(res.x,-1)
 		t = res.x[-1]
 		x = y / t
@@ -387,6 +388,8 @@ def v_q18(set_slice, likelyhoods, epsilon):
 
 		func_min.append(func_value)
 	res = np.array(func_min)
+	# print("------------------------------------end v_q18")
+
 	return res
 
 def m_q18(probs, likelyhoods, epsilon):
