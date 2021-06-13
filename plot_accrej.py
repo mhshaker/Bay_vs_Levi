@@ -18,7 +18,7 @@ color_correct = False
 vertical_plot = False
 single_plot = False
 
-# data_list  = ["parkinsons","vertebral","breast","climate", "ionosphere", "blod", "bank", "QSAR", "spambase", "wine_qw"] 
+# data_list  = ["parkinsons","vertebral","breast","climate", "ionosphere", "blod", "bank", "QSAR", "spambase", "iris"] 
 # data_list  = ["vertebral","breast", "ionosphere", "blod", "QSAR", "wine_qw"] 
 # data_list = ["climate", "parkinsons", "spambase"]
 # data_list = ["climate", "vertebral"]
@@ -29,11 +29,11 @@ for data in data_list:
     
     # prameters ############################################################################################################################################
 
-    run_name  = "LFPleviVSbays"
-    plot_name = data + "GHsimplex"
-    # query       = f"SELECT results, id , prams, result_type FROM experiments Where task='unc' AND dataset='Jdata/{data}' AND run_name='{run_name}'"
+    run_name  = "GHsimplex"
+    plot_name = data + "random_min"
+    # query       = f"SELECT results, id , prams, result_type FROM experiments Where task='unc' AND dataset='Jdata/{data}' AND run_name='{run_name}' AND status='done'"
     # query       = f"SELECT results, id , prams, result_type FROM experiments Where task='unc' AND dataset='Jdata/{data}' AND run_name='{run_name}' AND result_type='levi.GH'"
-    query       = f"SELECT results, id , prams, result_type FROM experiments Where task='unc' AND id>=4832"
+    query       = f"SELECT results, id , prams, result_type FROM experiments Where task='unc' AND id>=4860"
 
     ########################################################################################################################################################
     xlabel      = "Rejection %"

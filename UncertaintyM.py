@@ -368,20 +368,21 @@ def v_q18(set_slice, likelyhoods, epsilon):
 
 		########## Sanity test for V_Q(A)
 
-		# bnds = [ (_m * (1 / epsilon), _m * epsilon) for _ in range(m) ]
-		# for i in range(100):
-		# 	# generate random s
-		# 	rand_s = get_random_with_constraint(m,bnds)
-		# 	# ent_rand = calculete V_Q(A) with random s
-		# 	rand_vqa = (cc*rand_s) / (dd*rand_s)
-		# 	rand_vqa = rand_vqa.sum() # this is to sum up all the hyposesies from m=1 to M
+		bnds = [ (_m * (1 / epsilon), _m * epsilon) for _ in range(m) ]
+		for i in range(100):
+			# generate random s
+			rand_s = get_random_with_constraint(m,bnds)
+			# ent_rand = calculete V_Q(A) with random s
+			rand_vqa = (cc*rand_s) / (dd*rand_s)
+			rand_vqa = rand_vqa.sum() # this is to sum up all the hyposesies from m=1 to M
 
-		# 	# compare
-		# 	if rand_vqa < func_value:
-		# 		print(f">>>>>>>>> [Failed] the test {i} rand_vqa {rand_vqa} min_vqa {func_value}  diff {func_value - rand_vqa}")
-		# 	else:
-		# 		pass
-		# 		# print(f"pass rand_vqa {rand_vqa} min_vqa {func_value}")
+			# compare
+			if rand_vqa < func_value:
+				func_value = rand_vqa
+				# print(f">>>>>>>>> [Failed] the test {i} rand_vqa {rand_vqa} min_vqa {func_value}  diff {func_value - rand_vqa}")
+			else:
+				pass
+				# print(f"pass rand_vqa {rand_vqa} min_vqa {func_value}")
 
 
 		########## end test
