@@ -14,28 +14,43 @@ if not os.path.exists(pic_dir):
 
 unc_value_plot = False
 local = False
-color_correct = False
+color_correct = True
 vertical_plot = False
 single_plot = False
+legend_flag = False
 
 # data_list  = ["parkinsons","vertebral","breast","climate", "ionosphere", "blod", "bank", "QSAR", "spambase", "iris", "heartdisease"] 
 # data_list  = ["vertebral","breast", "ionosphere", "blod", "QSAR", "wine_qw"] 
 # data_list = ["climate", "parkinsons", "spambase"]
 # data_list = ["climate", "vertebral"]
-data_list = ["parkinsons"]
+data_list = ["QSAR"]
 modes     = "eat"
 
 for data in data_list:
     
     # prameters ############################################################################################################################################
 
-    run_name  = "set19"
-    plot_name = data + "_set19_e0"
-    # query       = f"SELECT results, id , prams, result_type FROM experiments Where task='unc' AND dataset='Jdata/{data}' AND run_name='{run_name}' AND status='done'"
+    run_name  = "DSpaper2"
+    plot_name = "/DSpaper/" + data + ""
+    query       = f"SELECT results, id , prams, result_type FROM experiments Where task='unc' AND dataset='Jdata/{data}' AND run_name='{run_name}' AND status='done'"
     # query       = f"SELECT results, id , prams, result_type FROM experiments Where task='unc' AND dataset='Jdata/{data}' AND run_name='{run_name}' AND result_type='levi.GH'"
-    query       = f"SELECT results, id , prams, result_type FROM experiments Where task='unc' AND id>=4894"
+    # query       = f"SELECT results, id , prams, result_type FROM experiments Where task='unc' AND id>=4894"
 
     ########################################################################################################################################################
+
+    # fix dataset official name
+    data = data.replace("parkinsons", "Parkinsons")
+    data = data.replace("vertebral", "Vertebral Column")
+    data = data.replace("breast", "Breast Cancer Wisconsin (Diagnostic)")
+    data = data.replace("climate", "Climate Model Simulation Crashes")
+    data = data.replace("ionosphere", "Ionosphere")
+    data = data.replace("blod", "Blood Transfusion Service Center")
+    data = data.replace("bank", "Banknote Authentication")
+    data = data.replace("QSAR", "QSAR biodegradation")
+    data = data.replace("spambase", "Spambase")
+    data = data.replace("iris", "Iris")
+    data = data.replace("heartdisease", "Heart Disease")
+
     xlabel      = "Rejection %"
     ylabel      = "Accuracy %"
 
@@ -127,7 +142,7 @@ for data in data_list:
 
             # print(">>>>>>>>", avg_acc)
             linestyle = '-'
-            if "set" in legend:
+            if "set19" in legend:
                 linestyle = '--'
             if "conv" in legend:
                 linestyle = ':'
@@ -154,6 +169,10 @@ for data in data_list:
                     color = "blue"
                 if "set15" in legend:
                     color = "red"
+                if "set18" in legend:
+                    color = "blue"
+                if "set19" in legend:
+                    color = "red"
             else:
                 color = None
 
@@ -166,13 +185,19 @@ for data in data_list:
             legend = legend.replace("bays", "Bayes")
             legend = legend.replace("set14", "Levi-GH-boot")
             legend = legend.replace("set15", "Levi-Ent-boot")
+            legend = legend.replace("set18", "Levi-GH")
+            legend = legend.replace("set19", "Levi-Ent")
             legend = legend.replace("gs", "GS")
+
+
+
             avg_acc = avg_acc * 100 # to have percentates and not decimals
 
             if single_plot:
                 axs.plot(steps, avg_acc, linestyle=linestyle, color=color)
             else:
                 axs[mode_index].plot(steps, avg_acc, linestyle=linestyle, color=color)
+                # axs[mode_index].grid(which='minor') # to show grids in the plot
             
             if mode == "a":
                 mode_title = "AU"
@@ -213,8 +238,8 @@ for data in data_list:
     # fig.suptitle(data)
     # with warnings.catch_warnings():
     #     warnings.simplefilter("ignore", category=RuntimeWarning)
-    
-    fig.legend(axs,labels=legend_list, loc="lower center", ncol=6)
+    if legend_flag:
+        fig.legend(axs,labels=legend_list, loc="lower center", ncol=6)
 
     fig.savefig(f"./pic/unc/{plot_name}.png",bbox_inches='tight')
     # fig.close()
