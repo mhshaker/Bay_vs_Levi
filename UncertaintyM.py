@@ -87,6 +87,92 @@ def uncertainty_ent_standard(probs): # for tree
 	return total, total, total # now it should be correct
 
 
+################################################################################################################################################# outcome uncertainty
+
+def max_p_out_binary(s, p, l):
+	s = np.reshape(s,(-1,1))
+	l = np.reshape(l,(-1,1))
+	s_l_p = s * l * p
+	s_l = s * l
+	s_l_p_sum = np.sum(s_l_p, axis=0)
+	s_l_sum = np.sum(s_l, axis=0)
+	z = s_l_p_sum / s_l_sum # to get the formual for S^* in paper
+	z = z[0] # to only look at the first class of a binary problem
+	return z * -1 # so that we maximize it
+
+def min_p_out_binary(s, p, l):
+	s = np.reshape(s,(-1,1))
+	l = np.reshape(l,(-1,1))
+	s_l_p = s * l * p
+	s_l = s * l
+	s_l_p_sum = np.sum(s_l_p, axis=0)
+	s_l_sum = np.sum(s_l, axis=0)
+	z = s_l_p_sum / s_l_sum # to get the formual for S^* in paper
+	z = z[0] # to only look at the first class of a binary problem
+	return z 
+
+def uncertainty_outcome(probs, likelyhoods, epsilon=2, log=False):
+	m  = len(likelyhoods)
+	_m = 1/m
+
+	cons = ({'type': 'eq', 'fun': constarint})
+	b = (_m * (1 / epsilon), _m * epsilon) # (_m - epsilon, _m + epsilon) addetive constraint
+	bnds = [ b for _ in range(m) ]
+	x0 = get_random_with_constraint(probs.shape[1],bnds)
+
+	s_max = []
+	s_min = []
+	for data_point_prob in probs:	
+		sol_min = minimize(min_p_out_binary, x0, args=(data_point_prob,likelyhoods), method='SLSQP', bounds=bnds, constraints=cons)
+		sol_max = minimize(max_p_out_binary, x0, args=(data_point_prob,likelyhoods), method='SLSQP', bounds=bnds, constraints=cons)
+		s_min.append(sol_min.fun)
+		s_max.append(-sol_max.fun)
+	
+	a = np.array(s_min)
+	b = np.array(s_max)
+
+	eu = b - a
+	au = np.minimum(a, 1-b)
+	tu = np.minimum(1-a, b)
+	
+	if log:
+		print(probs)
+		print("------------------------------------a")
+		print(a)
+		print("------------------------------------b")
+		print(b)
+		print("------------------------------------unc")
+		print(eu)
+		print(au)
+		print(tu)
+		exit()
+	return tu, eu, au
+
+
+def uncertainty_outcome_tree(probs, log=False):
+	print("Yes we are in the tree!!!!")
+	# what is a and b -> lower and upper bound of the credal set -> highest and lowest prob of a class
+	a = probs[:,:,0].min(axis=1)
+	b = probs[:,:,0].max(axis=1)
+
+	eu = b - a
+	au = np.minimum(a, 1-b)
+	tu = np.minimum(1-a, b)
+	
+	if log:
+		print(probs)
+		print("------------------------------------a")
+		print(a)
+		print("------------------------------------b")
+		print(b)
+		print("------------------------------------unc")
+		print(eu)
+		print(au)
+		print(tu)
+	return tu, eu, au
+
+
+
 ################################################################################################################################################# set
 
 def Interval_probability(total_number, positive_number):
@@ -1211,6 +1297,91 @@ def linh_fast(pos,neg):
 #################################################################################################################################################
 
 def accuracy_rejection(predictions_list, labels_list, uncertainty_list, unc_value=False, log=False): # 2D inputs for average plot -> D1: runs D2: uncertainty data
+
+	accuracy_list = []
+	r_accuracy_list = []
+	
+	steps = np.array(list(range(90)))
+	if unc_value:
+		steps = uncertainty_list
+
+
+	for predictions, uncertainty, labels in zip(predictions_list, uncertainty_list, labels_list):
+
+		predictions = np.array(predictions)
+		uncertainty = np.array(uncertainty)
+
+		correctness_map = []
+		for x, y in zip(predictions, labels):
+			if x == y:
+				correctness_map.append(1)
+			else:
+				correctness_map.append(0)
+
+		# uncertainty, correctness_map = zip(*sorted(zip(uncertainty,correctness_map),reverse=False))
+
+		correctness_map = np.array(correctness_map)
+		sorted_index = np.argsort(uncertainty, kind='stable')
+		uncertainty = uncertainty[sorted_index]
+		correctness_map = correctness_map[sorted_index]
+
+		correctness_map = list(correctness_map)
+		uncertainty = list(uncertainty)
+		data_len = len(correctness_map)
+		accuracy = []
+
+		for step_index, x in enumerate(steps):
+			if unc_value:
+				rejection_index = step_index
+			else:
+				rejection_index = int(data_len *(len(steps) - x) / len(steps))
+			x_correct = correctness_map[:rejection_index].copy()
+			x_unc = uncertainty[:rejection_index].copy()
+			if log:
+				print(f"----------------------------------------------- rejection_index {rejection_index}")
+				for c,u in zip(x_correct, x_unc):
+					print(f"correctness_map {c} uncertainty {u}")
+				# print(f"rejection_index = {rejection_index}\nx_correct {x_correct} \nunc {x_unc}")
+			if rejection_index == 0:
+				accuracy.append(np.nan) # random.random()
+			else:
+				accuracy.append(np.sum(x_correct) / rejection_index)
+		accuracy_list.append(accuracy)
+
+		# random test plot
+		r_accuracy = []
+		
+		for step_index, x in enumerate(steps):
+			random.shuffle(correctness_map)
+			if unc_value:
+				r_rejection_index = step_index
+			else:
+				r_rejection_index = int(data_len *(len(steps) - x) / len(steps))
+
+			r_x_correct = correctness_map[:r_rejection_index].copy()
+			if r_rejection_index == 0:
+				r_accuracy.append(np.nan)
+			else:
+				r_accuracy.append(np.sum(r_x_correct) / r_rejection_index)
+
+		r_accuracy_list.append(r_accuracy)
+
+	accuracy_list = np.array(accuracy_list)
+	r_accuracy_list = np.array(r_accuracy_list)
+		
+	# print(accuracy_list)
+	with warnings.catch_warnings():
+		warnings.simplefilter("ignore", category=RuntimeWarning)
+
+		avg_accuracy = np.nanmean(accuracy_list, axis=0)
+		avg_r_accuracy = np.nanmean(r_accuracy_list, axis=0)
+		std_error = np.std(accuracy_list, axis=0) / math.sqrt(len(uncertainty_list))
+
+
+	return avg_accuracy, avg_accuracy - std_error, avg_accuracy + std_error, avg_r_accuracy , steps
+
+
+def uncertainty_correlation(predictions_list, labels_list, uncertainty_list, unc_value=False, log=False): # 2D inputs for average plot -> D1: runs D2: uncertainty data
 
 	accuracy_list = []
 	r_accuracy_list = []
